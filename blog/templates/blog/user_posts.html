@@ -1,7 +1,7 @@
 {% extends 'blog/base.html'%}
 {% block content %}
     <div class="media">
-        <img class="rounded-circle account-img" src="{{ object.post.author.profile.image.url }}">
+        <img class="rounded-circle account-img" src="{{ image }}">
         <div class="media-body">
             <h2 class="account-heading">{{ view.kwargs.username }}</h2>
         </div>

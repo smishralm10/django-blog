@@ -23,6 +23,15 @@ class UserPostListView(ListView):
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs.get('username'))
         return Post.objects.filter(author=user).order_by('-date_posted')
+    
+    def get_context_data(self, *args, **kwargs):
+        context = super(UserPostListView, self).get_context_data()
+        user = get_object_or_404(User, username=self.kwargs.get('username'))
+        try:
+            context['image'] = Post.objects.filter(author=user)[0].author.profile.image.url 
+        except Exception:
+            pass
+        return context
 
     
 class PostDetailView(DetailView):

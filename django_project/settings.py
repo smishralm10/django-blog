@@ -15,7 +15,7 @@ import json
 import os   
 
 #load json file for username and password for smtp service
-with open('./Blog_App/secret.json') as f:
+with open('../secret.json') as f:
     secret = json.loads(f.read())
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

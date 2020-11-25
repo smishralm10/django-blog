@@ -1,0 +1,38 @@
+{% extends 'blog/base.html'%}
+{% block content %}
+    <article class="media content-section">
+        <img class="rounded-circle article-img" src="{{ object.author.profile.image.url }}"></img>
+        <div class="media-body">
+        <div class="article-metadata">
+            <a class="mr-2" href="{% url 'user-posts' object.author.username %}">{{ object.author }}</a>
+            <small class="text-muted">{{ object.date_posted|date:"F d, Y" }}</small>
+        </div>
+        {% if object.author == user %}
+            <div class='float-right bg-light'> 
+                <button class="btn btn-secondary btn-sm dropdown bg-light" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <b class="text-dark">...</b> 
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="{% url 'post-update' object.id %}">Update Post</a>
+                <a class="dropdown-item" href=" {% url 'post-delete' object.id %}">Delete Post</a>
+                </div>
+            </div>
+        {% endif %}
+        <h2 class="article-title">{{ object.title }}</h2>
+        <p class="article-content">{{ object.content }}</p>
+        </div>
+    </article>
+    <article class="content-section">
+        {% for comment in comments %}
+        <div>
+            <img class="rounded-circle article-img" style="height: 30px; width: 30px" src="{{ comment.author.profile.image.url }}"></img>
+            <span class="article-metadata">
+                <a class="mr-2" href="{% url 'user-posts' comment.author %}">{{ comment.author }}</a>
+                <small class="text-muted">{{ comment.date|date:"F d, Y" }}</small>
+            </span>
+            <span><P style="margin-left: 48px;">{{ comment }}</P></span>
+        </div>
+        {% endfor %}
+    </article>
+    
+{% endblock %}

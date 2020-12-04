@@ -1,5 +1,7 @@
 {% extends 'blog/base.html'%}
+{% load crispy_forms_tags %}
 {% block content %}
+    <!--Blog section-->
     <article class="media content-section">
         <img class="rounded-circle article-img" src="{{ object.author.profile.image.url }}"></img>
         <div class="media-body">
@@ -22,6 +24,20 @@
         <p class="article-content">{{ object.content }}</p>
         </div>
     </article>
+    <!--Comment Form-->
+    <div class="content-section">
+        <form id="comment-form" method="POST" novalidate>
+            {% csrf_token %}
+            <fieldset class='form-group'>
+                {{ form|crispy }}
+            </fieldset>
+            <div class="form-group">
+                <button class="btn btn-outline-info" type="submit">Submit</button>
+            </div>
+        </form>
+    </div>
+
+    <!--Comment section-->
     <article class="content-section">
         {% for comment in comments %}
         <div>
@@ -36,3 +52,50 @@
     </article>
     
 {% endblock %}
+
+{% block javascript %}
+<script>
+    
+    function createComment(formData){
+        const csrfValue = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+        fetch("{% url 'post-detail' object.id %}", {
+            method: 'post',
+            headers: {
+                "X-CSRFToken": csrfValue,
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: formData
+        }).then(function(res){
+            if(!res.ok){
+                throw 'Response not valid';
+            }
+            return res.json();
+        }).then(function(data){
+            console.log(data);
+        }).catch((error) => {
+            console.error('Error', error);
+        })
+    }
+
+    function submitComment(e){
+        e.preventDefault();
+        const comment = document.getElementById('id_comment').value;
+        if(comment){
+            let formData = new FormData(commentForm);
+            createComment(formData);
+        }
+        else{
+            console.log('Comment cannot be empty')
+        }
+    }
+
+    const asterisk = document.querySelector('.asteriskField');
+    asterisk.innerHTML = '';
+    
+    //const commentForm = document.getElementById('comment-form').addEventListener('submit', submitComment);
+
+
+
+</script>
+
+{% endblock javascript %}

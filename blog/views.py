@@ -1,10 +1,15 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic.detail import SingleObjectMixin
+from django.views import View
 from django.contrib.auth.models import User
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Post
-
-
+from django.views.generic.edit import FormView
+from django.http import JsonResponse, HttpResponseForbidden
+from django.core import serializers
+from django.urls import reverse_lazy, reverse
+from .models import Post, Comment
+from .forms import CommentForm
 
 
 class PostListView(ListView):
@@ -33,14 +38,47 @@ class UserPostListView(ListView):
             pass
         return context
 
-    
-class PostDetailView(DetailView):
+class PostDisplay(DetailView):
     model = Post
 
     def get_context_data(self, *args, **kwargs):
-        context = super(PostDetailView, self).get_context_data()
+        context = super(PostDisplay, self).get_context_data()
         context['comments'] = Post.objects.get(pk=self.kwargs['pk']).comments.all()
+        context['form'] = CommentForm
         return context
+
+class PostComment(LoginRequiredMixin, SingleObjectMixin, FormView):
+    template_name = 'blog/post_detail.html'
+    form_class = CommentForm
+    model = Post
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return HttpResponseForbidden()
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.post = Post.objects.get(pk=self.kwargs['pk'])
+        form = form.save()
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={"pk": self.object.pk})
+    
+
+
+class PostDetailView(View):
+    
+    def get(self, request, *args, **kwargs):
+        view = PostDisplay.as_view()
+        return view(request, *args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        view = PostComment.as_view()
+        return view(request, *args, **kwargs)
+
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
@@ -69,6 +107,8 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
+
+
 
 def about(request):
     return render(request, 'blog/about.html')
